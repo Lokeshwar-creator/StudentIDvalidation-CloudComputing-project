@@ -52,11 +52,20 @@
         border-radius: 8px;
         background: #007BFF;
         color: white;
-        cursor: pointer;
-        transition: 0.3s;
+        button:hover {
+        background: #0056b3;
     }
 
-    button:hover {
+    button.secondary {
+        background: #28a745;
+        margin-top: 10px;
+    }
+
+    button.secondary:hover {
+        background: #218838;
+    }
+
+    .result {:hover {
         background: #0056b3;
     }
 
@@ -77,17 +86,13 @@
 
     .fail {
         background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-
-</style>
-</head>
-<body>
-    <div class="container">
+        color:     <div class="container">
         <h2>Student ID Validation</h2>
         <input type="text" id="student_id" placeholder="Enter Student ID">
         <button onclick="validateStudent()">Check</button>
+        <button class="secondary" onclick="getRecommendations()">Get Recommendations</button>
+        <div id="result" class="result"></div>
+    </div>teStudent()">Check</button>
         <div id="result" class="result"></div>
     </div>
 
@@ -117,6 +122,49 @@
                     resultBox.className = 'result success';
                     resultBox.innerText = `${data.message}\nName: ${data.name}\nDepartment: ${data.department}`;
                 } else {
+                    resultB            } catch (error) {
+                resultBox.style.display = 'block';
+                resultBox.className = 'result fail';
+                resultBox.innerText = 'Error connecting to server. Please try again.';
+                console.error(error);
+            }
+        }
+
+        async function getRecommendations() {
+            const student_id = document.getElementById('student_id').value.trim();
+            const resultBox = document.getElementById('result');
+
+            if (!student_id) {
+                resultBox.style.display = 'block';
+                resultBox.className = 'result fail';
+                resultBox.innerText = 'Please enter a Student ID';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/recommendations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id })
+                });
+
+                const data = await response.json();
+
+                resultBox.style.display = 'block';
+                if (data.message.includes('successfully')) {
+                    resultBox.className = 'result success';
+                    let text = `${data.message}\n\n`;
+                    text += `Student: ${data.student.name} (${data.student.department})\n\n`;
+                    text += `Recommended Students:\n`;
+                    if (data.recommendations.length > 0) {
+                        data.recommendations.forEach((rec, idx) => {
+                            text += `${idx + 1}. ${rec.name} (ID: ${rec.student_id})\n`;
+                        });
+                    } else {
+                        text += 'No recommendations available.';
+                    }
+                    resultBox.innerText = text;
+                } else {
                     resultBox.className = 'result fail';
                     resultBox.innerText = data.message;
                 }
@@ -125,6 +173,10 @@
                 resultBox.style.display = 'block';
                 resultBox.className = 'result fail';
                 resultBox.innerText = 'Error connecting to server. Please try again.';
+                console.error(error);
+            }
+        }
+    </script>cting to server. Please try again.';
                 console.error(error);
             }
         }

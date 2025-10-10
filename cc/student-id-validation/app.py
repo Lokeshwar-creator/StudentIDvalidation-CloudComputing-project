@@ -1,6 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pyodbc
+import os
 
 app = Flask(__name__)
 CORS(app)  # <-- Enable CORS for all routes
@@ -21,6 +22,10 @@ def get_db_connection():
     except Exception as e:
         print("Error connecting to Azure SQL:", e)
         return None
+
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
 
 @app.route('/validate', methods=['POST'])
 def validate_id():
@@ -112,4 +117,4 @@ def get_recommendations():
         return jsonify({'message': 'Error processing recommendations ❌'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
