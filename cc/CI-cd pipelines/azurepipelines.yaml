@@ -1,0 +1,58 @@
+# Student ID Validation - Azure Function App CI/CD Pipeline
+# Organization: studentidvalidation
+# Project: StudentIDValidation
+# Function App: student-id-checker-func
+
+trigger:
+  - main   # Runs automatically when you push code to the main branch
+
+pool:
+  vmImage: 'ubuntu-latest'  # Use latest Ubuntu runner in Azure DevOps
+
+variables:
+  pythonVersion: '3.9'
+  functionAppName: 'student-id-checker-func'
+  packagePath: 'student-id-checker-func'
+
+steps:
+# Step 1: Checkout code from Azure Repos
+- task: Checkout@1
+  displayName: 'Checkout source code'
+
+# Step 2: Set up Python environment
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+  displayName: 'Use Python $(pythonVersion)'
+
+# Step 3: Install dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r $(packagePath)/requirements.txt
+  displayName: 'Install project dependencies'
+
+# Step 4: Archive function app files
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/$(packagePath)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
+    replaceExistingArchive: true
+  displayName: 'Archive function app files'
+
+# Step 5: Publish build artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+  displayName: 'Publish build artifacts'
+
+# Step 6: Deploy to Azure Function App
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'studentidvalidation-connection'  # Replace this with your service connection name
+    appType: 'functionApp'
+    appName: '$(functionAppName)'
+    package: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
+  displayName: 'Deploy to Azure Function App'
