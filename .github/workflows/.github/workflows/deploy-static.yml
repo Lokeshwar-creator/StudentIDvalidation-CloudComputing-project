@@ -1,0 +1,23 @@
+name: Deploy Static Website to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy static site to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'index'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          package: cc/student-id-validation
